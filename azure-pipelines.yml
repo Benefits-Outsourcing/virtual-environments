@@ -1,0 +1,31 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: windows-latest
+
+steps:
+#- script: choco install packer
+#  displayName: 'Install Packer'
+
+#- script: |
+    #Import-Module .\helpers\GenerateResourcesAndImage.ps1
+    #GenerateResourcesAndImage -SubscriptionId {YourSubscriptionId} -ResourceGroupName "myTestResourceGroup" -ImageGenerationRepositoryRoot "$pwd" -ImageType Ubuntu1804 -AzureLocation "East US"
+  #displayName: 'Generate the image'
+
+- task: AzurePowerShell@5
+  inputs:
+    azureSubscription: 'Client Environments - DEV'
+    ScriptType: 'InlineScript'
+    Inline: |
+      Import-Module .\helpers\GenerateResourcesAndImage.ps1
+      $ctx = Get-AzContext
+      GenerateResourcesAndImage -SubscriptionId $ctx.Subscription.Id -ResourceGroupName "BDAOUT-PACKERIMAGE-D-RGRP" -ImageGenerationRepositoryRoot "$pwd" -ImageType Windows2022 -AzureLocation "East US 2"
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
+    pwsh: true
