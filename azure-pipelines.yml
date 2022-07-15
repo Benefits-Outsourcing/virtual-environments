@@ -29,3 +29,5 @@ steps:
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'
     pwsh: true
+  env:
+    AZURECLIENTSECRET: $(AzureClientSecret)
