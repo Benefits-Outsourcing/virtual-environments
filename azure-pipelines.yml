@@ -25,7 +25,7 @@ steps:
     Inline: |
       Import-Module .\helpers\GenerateResourcesAndImage.ps1
       $ctx = Get-AzContext
-      GenerateResourcesAndImage -SubscriptionId $ctx.Subscription.Id -ResourceGroupName "BDAOUT-PACKERIMAGE-D-RGRP" -ImageGenerationRepositoryRoot "$pwd" -ImageType Windows2022 -AzureLocation "East US 2" -AzureClientId ${env:AZURECLIENTID} -AzureClientSecret ${env:AZURECLIENTSECRET} -AzureTenantId ${env:AZURETENANTID}
+      GenerateResourcesAndImage -SubscriptionId $ctx.Subscription.Id -ResourceGroupName "BDAOUT-PACKERIMAGE-D-RGRP" -ImageGenerationRepositoryRoot "$pwd" -ImageType Windows2022 -AzureLocation "East US 2" -AzureClientId ${env:AZURECLIENTID} -AzureClientSecret ${env:AZURECLIENTSECRET} -AzureTenantId ${env:AZURETENANTID} -EnableHttpsTrafficOnly $true
     FailOnStandardError: true
     azurePowerShellVersion: 'LatestVersion'
     pwsh: true
