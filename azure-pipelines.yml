@@ -40,3 +40,6 @@ steps:
     pwsh: true
   env:
     AZURECLIENTSECRET: $(AzureClientSecret)
+    VNET_NAME: $(VirtualNetworkName)
+    VNET_RESOURCE_GROUP: $(VirtualNetworkResourceGroup)
+    VNET_SUBNET: $(VirtualNetworkSubnet)
