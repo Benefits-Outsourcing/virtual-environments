@@ -1,7 +1,8 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Pipeline for building a current Azure Pipelines hosted image
+# https://github.com/actions/virtual-environments/blob/main/docs/create-image-and-azure-resources.md
+
+# The first one of these will have to be generated outside the pipeline, but after we
+# create the first image and set up the scale set, we should be able to bootstrap them. 
 
 trigger:
 - main
@@ -10,15 +11,40 @@ pool:
   vmImage: windows-latest
 
 steps:
-#- script: choco install packer
-#  displayName: 'Install Packer'
 
-#- script: |
-    #Import-Module .\helpers\GenerateResourcesAndImage.ps1
-    #GenerateResourcesAndImage -SubscriptionId {YourSubscriptionId} -ResourceGroupName "myTestResourceGroup" -ImageGenerationRepositoryRoot "$pwd" -ImageType Ubuntu1804 -AzureLocation "East US"
-  #displayName: 'Generate the image'
+- task: PowerShell@2
+  displayName: "Convert template from VHD to managed disks"
+  inputs:
+    targetType: 'inline'
+    script: |
+      # https://github.com/actions/virtual-environments/pull/3955
+
+      # Load the template from disk.
+      $templatePath = "images\win\windows2022.json"
+      $JSON = Get-Content -Path "$templatePath" -Raw | ConvertFrom-Json
+      
+      # Remove VHD properties.
+      $JSON.builders[0].psobject.properties.remove('resource_group_name')
+      $JSON.builders[0].psobject.properties.remove('storage_account')
+      $JSON.builders[0].psobject.properties.remove('capture_container_name')
+      $JSON.builders[0].psobject.properties.remove('capture_name_prefix')
+      
+      # Assign new properties to the first (and only) element of array <builders>
+      # This could also be used to instead add a source shared_image_gallery
+      # and/or shared_image_gallery_destination
+      $JSON.builders[0] | Add-Member @{ 
+        managed_image_resource_group_name = '{{user `resource_group`}}'
+        managed_image_name = '{{user `capture_name_prefix`}}{{isotime | clean_resource_name}}'
+      }
+      
+      # Write the updated JSON to disk.
+      $JSON | ConvertTo-Json -Depth 8 | Out-File $templatePath -Encoding Ascii -Force
+    failOnStderr: true
+    showWarnings: true
+    pwsh: true
 
 - task: AzurePowerShell@5
+  displayName: "Generate image with packer"
   inputs:
     azureSubscription: 'Client Environments - DEV'
     ScriptType: 'InlineScript'
